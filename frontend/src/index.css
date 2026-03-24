@@ -1,0 +1,69 @@
+body {
+  margin: 0;
+  font-family: Arial;
+}
+
+.nav {
+  background: #111;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+.badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.gold {
+  background: gold;
+  color: black;
+}
+
+.silver {
+  background: silver;
+  color: black;
+}
+
+.normal {
+  background: green;
+  color: white;
+}
+
+.original {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.discount {
+  color: red;
+  font-weight: bold;
+}
+
+.final {
+  font-size: 18px;
+  font-weight: bold;
+  color: #007bff;
+}
