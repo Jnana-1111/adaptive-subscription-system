@@ -25,7 +25,7 @@ function ProductCard({ product }) {
 
   // 🔘 Subscribe API call
   const handleSubscribe = () => {
-    fetch("http://localhost:5000/subscribe", {
+    fetch("http://localhost:5000/subscriptions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

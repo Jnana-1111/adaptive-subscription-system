@@ -1,74 +1,85 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
-function Register() {
-  const navigate = useNavigate();
+const Register = () => {
+  const [name, setName] = useState("");     // ✅ added
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: ""
-  });
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
-    fetch("http://localhost:5000/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(form)
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        alert("Registration successful!");
+    const payload = {
+      name: name,          // ✅ added
+      email: email,
+      password: password,
+    };
 
-        // 🔥 Auto redirect to login
-        navigate("/login");
-      })
-      .catch((err) => console.error(err));
+    console.log("Sending register data:", payload);
+
+    try {
+      const res = await fetch("http://localhost:5000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      console.log("Register response:", data);
+
+      if (res.ok) {
+        alert("Registration successful");
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
   };
 
   return (
-    <div className="form-container">
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h2>Register</h2>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleRegister}>
+
+        {/* ✅ Name field */}
         <input
-          name="username"
-          placeholder="Username"
-          onChange={handleChange}
+          type="text"
+          placeholder="Enter name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
         />
 
+        <br /><br />
+
         <input
-          name="email"
           type="email"
-          placeholder="Email"
-          onChange={handleChange}
+          placeholder="Enter email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
 
+        <br /><br />
+
         <input
-          name="password"
           type="password"
-          placeholder="Password"
-          onChange={handleChange}
+          placeholder="Enter password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
+
+        <br /><br />
 
         <button type="submit">Register</button>
       </form>
     </div>
   );
-}
+};
 
 export default Register;

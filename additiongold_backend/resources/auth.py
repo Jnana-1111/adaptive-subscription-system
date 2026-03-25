@@ -13,6 +13,7 @@ from common.validators import is_valid_email, is_strong_password
 class RegisterUser(Resource):
     def post(self):
         data = request.get_json()
+        print("Incoming register data:", data)
 
         if not data:
             return api_response(False, 400, "Invalid request body")

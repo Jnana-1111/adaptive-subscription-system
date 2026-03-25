@@ -1,71 +1,78 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
-function Login() {
-  const navigate = useNavigate();
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [form, setForm] = useState({
-    email: "",
-    password: ""
-  });
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(form)
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
+    try {
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
 
-        // 🔥 Store token (if backend sends)
+      const data = await res.json();
+      console.log("Login response:", data);
+
+      // ✅ IMPORTANT FIX (TOKEN STORAGE)
+      if (res.ok) {
         localStorage.setItem("token", data.access_token);
 
-        alert("Login successful!");
+        console.log("Token saved:", data.access_token);
 
-        // 🔥 Redirect to products
-        navigate("/");
-      })
-      .catch((err) => console.error(err));
+        alert("Login successful");
+
+        // redirect to products page
+        window.location.href = "/products";
+      } else {
+        alert(data.error || "Login failed");
+      }
+
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Server error");
+    }
   };
 
   return (
-    <div className="form-container">
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h2>Login</h2>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
-        />
+      <form onSubmit={handleLogin}>
+        <div>
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
-        />
+        <div style={{ marginTop: "10px" }}>
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-        <button type="submit">Login</button>
+        <div style={{ marginTop: "20px" }}>
+          <button type="submit">Login</button>
+        </div>
       </form>
     </div>
   );
-}
+};
 
 export default Login;

@@ -7,8 +7,10 @@ from flask_restful import Api  # ✅ create here
 from resources.auth import RegisterUser, LoginUser
 from resources.product import ProductResource
 from resources.subscription import SubscriptionResource
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  
 app.config.from_object(Config)
 
 db.init_app(app)
