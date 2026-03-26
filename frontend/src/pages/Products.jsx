@@ -1,39 +1,70 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import ProductCard from "../components/ProductCard";
 
-function Products() {
+const Products = () => {
   const [products, setProducts] = useState([]);
+  const [username, setUsername] = useState("");
+  const [usertype, setUsertype] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/products")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("API DATA:", data); // 👈 Debugging
+    // ✅ Load user info from localStorage
+    setUsername(localStorage.getItem("username") || "User");
+    setUsertype(localStorage.getItem("usertype") || "normal");
 
-        // ✅ FIX: products are inside data.data
-        if (data && data.data) {
-          setProducts(data.data);
+    // ✅ Fetch products from backend
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/products");
+
+        console.log("PRODUCTS API RESPONSE:", res.data);
+
+        // 🔥 IMPORTANT FIX (based on your backend structure)
+        if (res.data && res.data.data) {
+          setProducts(res.data.data);  // ✅ Correct
         } else {
           setProducts([]); // fallback safety
         }
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-        setProducts([]);
-      });
+
+      } catch (err) {
+        console.error("Product fetch error:", err);
+        setProducts([]); // avoid crash
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   return (
-    <div className="grid">
-      {products.length > 0 ? (
-        products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))
-      ) : (
-        <h2>No products available</h2>
-      )}
+    <div>
+      {/* 🔹 Top Right User Info */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: "10px",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <strong>{username}</strong> ({usertype})
+      </div>
+
+      {/* 🔹 Products Section */}
+      <div style={{ padding: "20px" }}>
+        {Array.isArray(products) && products.length > 0 ? (
+          products.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              setUsertype={setUsertype}
+            />
+          ))
+        ) : (
+          <p>Loading products...</p>
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default Products;

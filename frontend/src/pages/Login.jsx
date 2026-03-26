@@ -1,75 +1,70 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+      const res = await axios.post("http://localhost:5000/login", {
+        email,
+        password,
       });
 
-      const data = await res.json();
-      console.log("Login response:", data);
+      console.log("LOGIN RESPONSE:", res.data);
 
-      // ✅ IMPORTANT FIX (TOKEN STORAGE)
-      if (res.ok) {
-        localStorage.setItem("token", data.access_token);
+      // ✅ Extract data from backend
+      const token = res.data.data.access_token;
+      const user = res.data.data.user;
 
-        console.log("Token saved:", data.access_token);
+      // ✅ Store in localStorage (backend-driven)
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", user.username);
+      localStorage.setItem("usertype", user.user_type);
 
-        alert("Login successful");
+      alert("Login successful!");
 
-        // redirect to products page
-        window.location.href = "/products";
-      } else {
-        alert(data.error || "Login failed");
-      }
+      // ✅ Redirect to products page
+      navigate("/products");
 
     } catch (error) {
-      console.error("Error:", error);
-      alert("Server error");
+      console.error("LOGIN ERROR:", error);
+
+      if (error.response) {
+        alert(error.response.data.message || "Login failed");
+      } else {
+        alert("Server error. Please try again.");
+      }
     }
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div className="login-container">
       <h2>Login</h2>
 
       <form onSubmit={handleLogin}>
-        <div>
-          <input
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
+        <input
+          type="email"
+          placeholder="Enter email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <div style={{ marginTop: "10px" }}>
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <input
+          type="password"
+          placeholder="Enter password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-        <div style={{ marginTop: "20px" }}>
-          <button type="submit">Login</button>
-        </div>
+        <button type="submit">Login</button>
       </form>
     </div>
   );
