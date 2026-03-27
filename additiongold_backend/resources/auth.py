@@ -1,71 +1,84 @@
+# auth.py
 from flask_restful import Resource
 from flask import request
 from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db, bcrypt
 from models.user import User
 
 
-# ✅ REGISTER USER
 class RegisterUser(Resource):
     def post(self):
-        data = request.get_json()
+        try:
+            data = request.get_json()
+            if not data:
+                return {"message": "No input data provided"}, 400
 
-        username = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
+            name = data.get("name", "").strip()
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
 
-        # 🔍 Check if user already exists
-        if User.query.filter_by(email=email).first():
-            return {"message": "User already exists"}, 400
+            if not name or not email or not password:
+                return {"message": "Name, email, and password are required"}, 400
 
-        # 🔐 Hash password
-        hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+            # Check if email already exists
+            if User.query.filter_by(email=email).first():
+                return {"message": "Email already registered"}, 400
 
-        # 🆕 Create new user (default user_type = normal)
-        new_user = User(
-            username=username,
-            email=email,
-            password=hashed_password,
-            user_type="normal"   # ✅ default
-        )
+            # Hash the password using bcrypt
+            hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        db.session.add(new_user)
-        db.session.commit()
+            # Create new user
+            new_user = User(name=name, email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
 
-        return {"message": "User registered successfully"}, 201
+            return {"message": "User registered successfully"}, 201
 
+        except Exception as e:
+            print("RegisterUser Error:", e)
+            return {"message": "Server error"}, 500
 
-# ✅ LOGIN USER
+# ------------------ Login ------------------
 class LoginUser(Resource):
     def post(self):
-        data = request.get_json()
+        try:
+            data = request.get_json()
+            if not data:
+                return {"message": "No input data provided"}, 400
 
-        email = data.get("email")
-        password = data.get("password")
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
 
-        # 🔍 Find user
-        user = User.query.filter_by(email=email).first()
+            if not email or not password:
+                return {"message": "Email and password are required"}, 400
 
-        # ❌ Invalid user
-        if not user:
-            return {"message": "User not found"}, 404
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                return {"message": "User not found"}, 404
 
-        # ❌ Wrong password
-        if not bcrypt.check_password_hash(user.password, password):
-            return {"message": "Invalid password"}, 401
+            # ✅ Verify password
+            if not bcrypt.check_password_hash(user.password, password):
+                return {"message": "Invalid password"}, 401
 
-        # 🔐 Create JWT token
-        access_token = create_access_token(identity=user.id)
+            # ✅ FIX: identity MUST be string
+            token = create_access_token(
+                identity=str(user.id),   # 🔥 IMPORTANT FIX
+                additional_claims={
+                    "usertype": user.user_type
+                }
+            )
 
-        # ✅ Return token + user info
-        return {
-            "message": "Login success",
-            "data": {
-                "access_token": access_token,
+            return {
+                "access_token": token,
                 "user": {
-                    "username": user.username,
+                    "id": user.id,
+                    "name": user.name,
                     "email": user.email,
                     "user_type": user.user_type
                 }
-            }
-        }, 200
+            }, 200
+
+        except Exception as e:
+            print("LoginUser Error:", e)
+            return {"message": "Server error"}, 500

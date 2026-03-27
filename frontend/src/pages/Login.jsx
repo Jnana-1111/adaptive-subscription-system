@@ -19,8 +19,8 @@ const Login = () => {
       console.log("LOGIN RESPONSE:", res.data);
 
       // ✅ Extract data from backend
-      const token = res.data.data.access_token;
-      const user = res.data.data.user;
+      const token = res.data.access_token;
+      const user = res.data.user;
 
       // ✅ Store in localStorage (backend-driven)
       localStorage.setItem("token", token);
