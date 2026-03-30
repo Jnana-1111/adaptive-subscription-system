@@ -1,22 +1,17 @@
 import React from "react";
 import axios from "axios";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, setUsertype }) => {
 
   const handleSubscribe = async () => {
     try {
       const token = localStorage.getItem("token");
 
-      // ✅ Debug: check what you're sending
-      console.log("Sending payload:", {
-        product_id: product?.id,
-        frequency: "monthly"
-      });
-
-      const res = await axios.post(
+      // ✅ Step 1: Create subscription
+      await axios.post(
         "http://localhost:5000/subscriptions",
         {
-          product_id: product?.id,     // ✅ safe access
+          product_id: product?.id,
           frequency: "monthly"
         },
         {
@@ -27,13 +22,25 @@ const ProductCard = ({ product }) => {
         }
       );
 
-      console.log("✅ SUCCESS:", res.data);
+      // ✅ Step 2: Fetch updated user data
+      const res = await axios.get(
+        "http://localhost:5000/me",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // ✅ Step 3: Update UI instantly
+      if (setUsertype) {
+        setUsertype(res.data.user_type);
+      }
 
       alert("Subscription successful!");
 
     } catch (err) {
-      // ✅ THIS IS IMPORTANT (as you asked)
-      console.error("FULL ERROR:", err.response?.data || err.message);
+      console.error("Subscription Error:", err.response?.data || err.message);
 
       alert(
         err.response?.data?.msg ||

@@ -4,6 +4,7 @@ from extensions import db, bcrypt, jwt
 
 from flask_restful import Api
 from flask_cors import CORS
+from resources.user import CurrentUser
 
 # ✅ Import resources
 from resources.auth import RegisterUser, LoginUser
@@ -30,6 +31,7 @@ api.add_resource(RegisterUser, "/register")
 api.add_resource(LoginUser, "/login")
 api.add_resource(ProductResource, "/products")
 api.add_resource(SubscriptionResource, "/subscriptions")  # ✅ NEW
+api.add_resource(CurrentUser, "/me")
 
 # ✅ Debug routes
 print(app.url_map)

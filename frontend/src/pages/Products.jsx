@@ -8,31 +8,69 @@ const Products = () => {
   const [usertype, setUsertype] = useState("");
 
   useEffect(() => {
-    // ✅ Load user info from localStorage
-    setUsername(localStorage.getItem("username") || "User");
-    setUsertype(localStorage.getItem("usertype") || "normal");
+    console.log("✅ Products component mounted");
 
-    // ✅ Fetch products from backend
-    const fetchProducts = async () => {
+    // ✅ FETCH USER (DYNAMIC - FROM BACKEND)
+    const fetchUser = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/products");
+        const token = localStorage.getItem("token");
 
-        console.log("PRODUCTS API RESPONSE:", res.data);
+        console.log("🔥 TOKEN:", token);
 
-        // 🔥 IMPORTANT FIX (based on your backend structure)
-        if (res.data && res.data.data) {
-          setProducts(res.data.data);  // ✅ Correct
-        } else {
-          setProducts([]); // fallback safety
+        if (!token) {
+          console.error("❌ No token found. Please login again.");
+          return;
         }
 
+        const res = await axios.get("http://localhost:5000/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("🔥 USER API RESPONSE:", res.data);
+
+        // ✅ SET USER DATA
+        setUsername(res.data.username);
+        setUsertype(res.data.user_type);
+
       } catch (err) {
-        console.error("Product fetch error:", err);
-        setProducts([]); // avoid crash
+        console.error("❌ USER FETCH ERROR:", err);
       }
     };
 
+    // ✅ FETCH PRODUCTS
+    const fetchProducts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get("http://localhost:5000/products", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("📦 PRODUCTS API RESPONSE:", res.data);
+
+        // ✅ HANDLE MULTIPLE RESPONSE FORMATS
+        if (Array.isArray(res.data)) {
+          setProducts(res.data);
+        } else if (res.data && res.data.data) {
+          setProducts(res.data.data);
+        } else {
+          setProducts([]);
+        }
+
+      } catch (err) {
+        console.error("❌ Product fetch error:", err);
+        setProducts([]);
+      }
+    };
+
+    // 🔥 CALL BOTH
+    fetchUser();
     fetchProducts();
+
   }, []);
 
   return (
@@ -46,7 +84,9 @@ const Products = () => {
           backgroundColor: "#f5f5f5",
         }}
       >
-        <strong>{username}</strong> ({usertype})
+        <strong>
+          {username ? `${username} (${usertype})` : "Loading..."}
+        </strong>
       </div>
 
       {/* 🔹 Products Section */}
@@ -56,7 +96,7 @@ const Products = () => {
             <ProductCard
               key={p.id}
               product={p}
-              setUsertype={setUsertype}
+              setUsertype={setUsertype} // 🔥 for dynamic update after subscribe
             />
           ))
         ) : (
