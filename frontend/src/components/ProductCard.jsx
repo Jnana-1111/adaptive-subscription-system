@@ -1,18 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 const ProductCard = ({ product, setUsertype }) => {
+
+  const [frequency, setFrequency] = useState("monthly");
 
   const handleSubscribe = async () => {
     try {
       const token = localStorage.getItem("token");
 
-      // ✅ Step 1: Create subscription
       await axios.post(
         "http://localhost:5000/subscriptions",
         {
           product_id: product?.id,
-          frequency: "monthly"
+          frequency: frequency
         },
         {
           headers: {
@@ -22,7 +23,6 @@ const ProductCard = ({ product, setUsertype }) => {
         }
       );
 
-      // ✅ Step 2: Fetch updated user data
       const res = await axios.get(
         "http://localhost:5000/me",
         {
@@ -32,7 +32,6 @@ const ProductCard = ({ product, setUsertype }) => {
         }
       );
 
-      // ✅ Step 3: Update UI instantly
       if (setUsertype) {
         setUsertype(res.data.user_type);
       }
@@ -41,18 +40,35 @@ const ProductCard = ({ product, setUsertype }) => {
 
     } catch (err) {
       console.error("Subscription Error:", err.response?.data || err.message);
-
-      alert(
-        err.response?.data?.msg ||
-        "Subscription failed. Check console."
-      );
+      alert(err.response?.data?.msg || "Subscription failed.");
     }
   };
 
   return (
     <div style={styles.card}>
+      
+      {/* ✅ PRODUCT IMAGE */}
+      <img
+        src={product?.image_url || "https://via.placeholder.com/200"}
+        alt={product?.name}
+        style={styles.image}
+      />
+
       <h3>{product?.name}</h3>
       <p>Price: ₹{product?.price}</p>
+
+      {/* Frequency */}
+      <div style={{ marginBottom: "10px" }}>
+        <label>Select Plan: </label>
+        <select
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value)}
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
 
       <button onClick={handleSubscribe} style={styles.button}>
         Subscribe
@@ -65,9 +81,16 @@ const styles = {
   card: {
     border: "1px solid #ddd",
     padding: "16px",
-    margin: "10px",
     borderRadius: "8px",
-    width: "200px"
+    width: "100%",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+  },
+  image: {
+    width: "100%",
+    height: "150px",
+    objectFit: "cover",
+    borderRadius: "6px",
+    marginBottom: "10px"
   },
   button: {
     padding: "8px 12px",
@@ -80,3 +103,4 @@ const styles = {
 };
 
 export default ProductCard;
+

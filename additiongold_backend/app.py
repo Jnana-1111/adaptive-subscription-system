@@ -10,6 +10,7 @@ from resources.user import CurrentUser
 from resources.auth import RegisterUser, LoginUser
 from resources.product import ProductResource
 from resources.subscription import SubscriptionResource   # ✅ NEW
+from resources.discount import DiscountByUser
 
 # ✅ Create app
 app = Flask(__name__)
@@ -32,6 +33,7 @@ api.add_resource(LoginUser, "/login")
 api.add_resource(ProductResource, "/products")
 api.add_resource(SubscriptionResource, "/subscriptions")  # ✅ NEW
 api.add_resource(CurrentUser, "/me")
+api.add_resource(DiscountByUser, "/discount-by-user")
 
 # ✅ Debug routes
 print(app.url_map)

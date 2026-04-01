@@ -6,6 +6,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [username, setUsername] = useState("");
   const [usertype, setUsertype] = useState("");
+  const [discount, setDiscount] = useState(null); // ✅ NEW
 
   useEffect(() => {
     console.log("✅ Products component mounted");
@@ -33,6 +34,20 @@ const Products = () => {
         // ✅ SET USER DATA
         setUsername(res.data.username);
         setUsertype(res.data.user_type);
+
+        // ✅ FETCH DISCOUNT AFTER USER
+        const discountRes = await axios.get(
+          `http://localhost:5000/discount-by-user?usertype=${res.data.user_type}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("🔥 DISCOUNT RESPONSE:", discountRes.data);
+
+        setDiscount(discountRes.data.discount_percent);
 
       } catch (err) {
         console.error("❌ USER FETCH ERROR:", err);
@@ -79,7 +94,8 @@ const Products = () => {
       <div
         style={{
           display: "flex",
-          justifyContent: "flex-end",
+          flexDirection: "column", // ✅ UPDATED
+          alignItems: "flex-end",  // ✅ UPDATED
           padding: "10px",
           backgroundColor: "#f5f5f5",
         }}
@@ -87,16 +103,30 @@ const Products = () => {
         <strong>
           {username ? `${username} (${usertype})` : "Loading..."}
         </strong>
+
+        {/* ✅ NEW: DISCOUNT DISPLAY */}
+        {discount !== null && (
+          <span style={{ color: "green", fontSize: "14px" }}>
+            🎉 {usertype} users get {discount}% discount
+          </span>
+        )}
       </div>
 
       {/* 🔹 Products Section */}
-      <div style={{ padding: "20px" }}>
+      <div
+        style={{
+          padding: "20px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: "20px"
+        }}
+>
         {Array.isArray(products) && products.length > 0 ? (
           products.map((p) => (
             <ProductCard
               key={p.id}
               product={p}
-              setUsertype={setUsertype} // 🔥 for dynamic update after subscribe
+              setUsertype={setUsertype} // (kept as it is)
             />
           ))
         ) : (
