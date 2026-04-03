@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+// ❌ You can remove this if not needed
+// import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,18 +20,14 @@ const Login = () => {
 
       console.log("LOGIN RESPONSE:", res.data);
 
-      // ✅ Extract data from backend
       const token = res.data.access_token;
       const user = res.data.user;
 
-      // ✅ Store in localStorage (backend-driven)
       localStorage.setItem("token", token);
       localStorage.setItem("username", user.username);
       localStorage.setItem("usertype", user.user_type);
 
       alert("Login successful!");
-
-      // ✅ Redirect to products page
       navigate("/products");
 
     } catch (error) {
@@ -45,28 +42,47 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
+    <div className="center-container">
+      <div className="form-box">
+        <h2 style={{ textAlign: "center" }}>Login</h2>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleLogin}>
 
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
+          />
 
-        <button type="submit">Login</button>
-      </form>
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Login
+          </button>
+
+        </form>
+      </div>
     </div>
   );
 };

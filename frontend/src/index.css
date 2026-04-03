@@ -3,6 +3,51 @@ body {
   font-family: Arial;
 }
 
+/* ✅ Center container (fixed for navbar) */
+.center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+  background: #f5f5f5;
+}
+
+/* ✅ Form box */
+.form-box {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 350px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ Inputs */
+.form-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ✅ Form button */
+.form-box button {
+  width: 100%;
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.form-box button:hover {
+  background: #0056b3;
+}
+
+/* ✅ Navbar */
 .nav {
   background: #111;
   color: white;
@@ -11,6 +56,23 @@ body {
   justify-content: space-between;
 }
 
+.nav h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.nav a {
+  color: white;
+  margin-left: 15px;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+/* ✅ Grid + Cards */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -30,6 +92,36 @@ body {
   transform: scale(1.03);
 }
 
+/* ✅ Buttons (GLOBAL for product cards) */
+.card button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ✅ Subscribe button (blue) */
+.card button:first-of-type {
+  background: #007bff;
+  color: white;
+}
+
+.card button:first-of-type:hover {
+  background: #0056b3;
+}
+
+/* ✅ 🛒 Add to Cart button (green) */
+.card button:last-of-type {
+  background: #28a745;
+  color: white;
+}
+
+.card button:last-of-type:hover {
+  background: #218838;
+}
+
+/* ✅ Badges */
 .badge {
   padding: 5px 10px;
   border-radius: 20px;

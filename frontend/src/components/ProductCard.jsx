@@ -5,12 +5,32 @@ const ProductCard = ({ product, setUsertype }) => {
 
   const [frequency, setFrequency] = useState("monthly");
 
+  // ✅ USER-SPECIFIC CART
+  const handleAddToCart = () => {
+    const username = localStorage.getItem("username");
+
+    if (!username) {
+      alert("Please login first");
+      return;
+    }
+
+    const cartKey = `cart_${username}`;
+
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+    cart.push(product);
+
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+
+    alert("Added to cart 🛒");
+  };
+
   const handleSubscribe = async () => {
     try {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/subscriptions",
+        `${import.meta.env.VITE_API_URL}/subscriptions`,
         {
           product_id: product?.id,
           frequency: frequency
@@ -24,7 +44,7 @@ const ProductCard = ({ product, setUsertype }) => {
       );
 
       const res = await axios.get(
-        "http://localhost:5000/me",
+        `${import.meta.env.VITE_API_URL}/me`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -45,20 +65,14 @@ const ProductCard = ({ product, setUsertype }) => {
   };
 
   return (
-    <div style={styles.card}>
+    <div className="card">
+
       
-      {/* ✅ PRODUCT IMAGE */}
-      <img
-        src={product?.image_url || "https://via.placeholder.com/200"}
-        alt={product?.name}
-        style={styles.image}
-      />
 
       <h3>{product?.name}</h3>
       <p>Price: ₹{product?.price}</p>
 
-      {/* Frequency */}
-      <div style={{ marginBottom: "10px" }}>
+      <div>
         <label>Select Plan: </label>
         <select
           value={frequency}
@@ -70,37 +84,16 @@ const ProductCard = ({ product, setUsertype }) => {
         </select>
       </div>
 
-      <button onClick={handleSubscribe} style={styles.button}>
+      <button onClick={handleSubscribe}>
         Subscribe
       </button>
+
+      <button onClick={handleAddToCart}>
+        Add to Cart 🛒
+      </button>
+
     </div>
   );
 };
 
-const styles = {
-  card: {
-    border: "1px solid #ddd",
-    padding: "16px",
-    borderRadius: "8px",
-    width: "100%",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-  },
-  image: {
-    width: "100%",
-    height: "150px",
-    objectFit: "cover",
-    borderRadius: "6px",
-    marginBottom: "10px"
-  },
-  button: {
-    padding: "8px 12px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer"
-  }
-};
-
 export default ProductCard;
-

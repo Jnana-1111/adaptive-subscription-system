@@ -1,15 +1,18 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [name, setName] = useState("");     // ✅ added
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
     const payload = {
-      name: name,          // ✅ added
+      name: name,
       email: email,
       password: password,
     };
@@ -28,8 +31,11 @@ const Register = () => {
       const data = await res.json();
       console.log("Register response:", data);
 
+     
+
       if (res.ok) {
         alert("Registration successful");
+        navigate("/login");
       } else {
         alert(data.error || "Registration failed");
       }
@@ -40,44 +46,56 @@ const Register = () => {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Register</h2>
+    <div className="center-container">
+      <div className="form-box">
+        <h2 style={{ textAlign: "center" }}>Register</h2>
 
-      <form onSubmit={handleRegister}>
+        <form onSubmit={handleRegister}>
 
-        {/* ✅ Name field */}
-        <input
-          type="text"
-          placeholder="Enter name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+          <input
+            type="text"
+            placeholder="Enter name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
+          />
 
-        <br /><br />
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
+          />
 
-        <input
-          type="email"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
+          />
 
-        <br /><br />
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "10px",
+              background: "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+            }}
+          >
+            Register
+          </button>
 
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <br /><br />
-
-        <button type="submit">Register</button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

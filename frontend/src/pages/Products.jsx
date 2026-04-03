@@ -100,9 +100,11 @@ const Products = () => {
           backgroundColor: "#f5f5f5",
         }}
       >
-        <strong>
-          {username ? `${username} (${usertype})` : "Loading..."}
-        </strong>
+       {username && (
+         <strong>
+           {username} ({usertype})
+         </strong>
+)}
 
         {/* ✅ NEW: DISCOUNT DISPLAY */}
         {discount !== null && (

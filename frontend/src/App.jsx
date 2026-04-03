@@ -3,6 +3,8 @@ import Navbar from "./components/Navbar";
 import Products from "./pages/Products";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Cart from "./pages/temp"; // ✅ because file is temp.jsx
+
 
 function App() {
   return (
@@ -13,9 +15,11 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/cart" element={<Cart />} />
+       
       </Routes>
     </>
   );
 }
 
-export default App; // ✅ THIS LINE IS REQUIRED
+export default App;
