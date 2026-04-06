@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useCart } from "../context/CartContext"; // ✅ ADD THIS
 
 const ProductCard = ({ product, setUsertype }) => {
 
   const [frequency, setFrequency] = useState("monthly");
 
-  // ✅ USER-SPECIFIC CART
+  const { addToCart } = useCart(); // ✅ USE CONTEXT
+
+  // ✅ PRODUCTION-LEVEL CART
   const handleAddToCart = () => {
     const username = localStorage.getItem("username");
 
@@ -14,14 +17,7 @@ const ProductCard = ({ product, setUsertype }) => {
       return;
     }
 
-    const cartKey = `cart_${username}`;
-
-    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
-
-    cart.push(product);
-
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-
+    addToCart(product); // ✅ CENTRALIZED LOGIC
     alert("Added to cart 🛒");
   };
 
@@ -66,8 +62,6 @@ const ProductCard = ({ product, setUsertype }) => {
 
   return (
     <div className="card">
-
-      
 
       <h3>{product?.name}</h3>
       <p>Price: ₹{product?.price}</p>

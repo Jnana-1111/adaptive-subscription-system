@@ -12,7 +12,7 @@ class ProductResource(Resource):
                 "id": p.id,
                 "name": p.name,
                 "price": p.price,
-                "image_url": p.image_url  # ✅ ADDED
+                "image_url": p.image_url  
             }
             for p in products
         ]
