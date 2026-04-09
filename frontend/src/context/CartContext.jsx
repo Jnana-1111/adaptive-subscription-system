@@ -1,109 +1,159 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const username = localStorage.getItem("username");
-  const cartKey = `cart_${username}`;
-
   const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [username, setUsername] = useState(null);
 
-  // ✅ NEW: Coupon states
+  // Coupon
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState("");
 
-  // ✅ Load cart on app start
+  // Get username from localStorage
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem(cartKey)) || [];
-    setCart(storedCart);
-  }, [cartKey]);
+    const user = localStorage.getItem("username");
+    if (user && user !== "undefined") setUsername(user);
+  }, []);
 
-  // ✅ Save cart whenever it changes
+  // Load wishlist from localStorage
   useEffect(() => {
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-  }, [cart, cartKey]);
+    const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+    setWishlist(savedWishlist);
+  }, []);
 
-  // ✅ Add to cart
-  const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find(item => item.id === product.id);
+  useEffect(() => {
+    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
 
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
-            : item
-        );
-      }
-
-      return [
-        ...prev,
-        {
-          id: product.id,
-          name: product.name,
-          price: Number(product.price) || 0,
-          quantity: 1
-        }
-      ];
-    });
-  };
-
-  // ✅ Remove item
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  // ✅ Update quantity
-  const updateQuantity = (id, type) => {
-    setCart(prev =>
-      prev.map(item => {
-        if (item.id === id) {
-          const newQty =
-            type === "inc"
-              ? item.quantity + 1
-              : item.quantity - 1;
-
-          return { ...item, quantity: newQty > 0 ? newQty : 1 };
-        }
-        return item;
-      })
-    );
-  };
-
-  // ✅ NEW: Apply coupon
-  const applyCoupon = (code) => {
-    if (code === "SAVE10") {
-      setDiscount(10);
-    } else if (code === "SAVE20") {
-      setDiscount(20);
-    } else {
-      setDiscount(0);
-      alert("Invalid coupon");
+  // Fetch cart from backend
+  const fetchCart = async (user) => {
+    if (!user) return;
+    try {
+      const res = await axios.get(`http://localhost:5000/cart/${user}`);
+      setCart(res.data.items || []);
+    } catch (err) {
+      console.error("❌ Fetch cart error:", err);
+      setCart([]);
     }
   };
 
-  // ✅ NEW: Subtotal
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  useEffect(() => {
+    if (username) fetchCart(username);
+  }, [username]);
 
-  // ✅ UPDATED: Total after discount
+  // Add to Cart
+  const addToCart = async (product) => {
+    if (!username) {
+      toast.error("Please login first", { style: { background: "#232f3e", color: "#fff" } });
+      return;
+    }
+
+    try {
+      await axios.post(
+        "http://localhost:5000/cart/add",
+        {
+          userId: username,
+          productId: product._id || product.id,
+          name: product.name,
+          price: product.price,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      fetchCart(username);
+
+      toast.success("Added to Cart 🛒", {
+        style: { background: "#232f3e", color: "#fff" },
+      });
+    } catch (err) {
+      console.error("❌ addToCart error:", err.response?.data || err);
+      toast.error("Failed to add item", { style: { background: "#ff4d4d", color: "#fff" } });
+    }
+  };
+
+  // Wishlist
+  const addToWishlist = (item) => {
+    setWishlist((prev) => {
+      if (prev.find((p) => p.productId === item.productId)) return prev;
+      toast.success("Added to Wishlist ❤️", { style: { background: "#fff", color: "#000" } });
+      return [...prev, item];
+    });
+  };
+
+  const removeFromWishlist = (productId) => {
+    setWishlist((prev) => {
+      const newList = prev.filter((i) => i.productId !== productId);
+      toast("Removed from Wishlist ❌", { style: { background: "#fff", color: "#000" }, icon: "💔" });
+      return newList;
+    });
+  };
+
+  // Update Quantity
+  const updateQuantity = async (productId, type) => {
+    try {
+      const item = cart.find((i) => i.productId === productId);
+      if (!item) return;
+
+      const newQty = type === "inc" ? item.quantity + 1 : item.quantity - 1;
+      if (newQty < 1) return;
+
+      await axios.put(`http://localhost:5000/cart/update/${username}/${productId}`, { quantity: newQty });
+      fetchCart(username);
+    } catch (err) {
+      console.error("❌ Quantity update error:", err);
+    }
+  };
+
+  // Remove from cart
+  const removeFromCart = async (productId) => {
+    try {
+      const itemToRemove = cart.find((i) => i.productId === productId);
+      if (!itemToRemove) return;
+
+      await axios.delete(`http://localhost:5000/cart/remove/${username}/${productId}`);
+      fetchCart(username);
+
+      if (itemToRemove) addToWishlist(itemToRemove);
+      toast("Item moved to Wishlist ❤️", { style: { background: "#fff", color: "#000" } });
+    } catch (err) {
+      console.error("❌ Remove error:", err);
+    }
+  };
+
+  // Coupon
+  const applyCoupon = () => {
+    if (couponCode === "SAVE10") setDiscount(10);
+    else if (couponCode === "SAVE20") setDiscount(20);
+    else {
+      setDiscount(0);
+      toast.error("Invalid coupon");
+    }
+  };
+
+  // Calculations
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const total = subtotal - (subtotal * discount) / 100;
 
   return (
     <CartContext.Provider
       value={{
         cart,
+        wishlist,
         addToCart,
-        removeFromCart,
+        addToWishlist,
+        removeFromWishlist,
         updateQuantity,
-        subtotal,        // ✅ NEW
+        removeFromCart,
+        subtotal,
         total,
-        discount,        // ✅ NEW
-        couponCode,      // ✅ NEW
-        setCouponCode,   // ✅ NEW
-        applyCoupon      // ✅ NEW
+        discount,
+        couponCode,
+        setCouponCode,
+        applyCoupon,
       }}
     >
       {children}

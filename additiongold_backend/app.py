@@ -11,10 +11,14 @@ from resources.auth import RegisterUser, LoginUser
 from resources.product import ProductResource
 from resources.subscription import SubscriptionResource   # ✅ NEW
 from resources.discount import DiscountByUser
+from resources.add_to_cart import AddToCartResource
+from resources.get_cart import GetCartResource
+from resources.remove_item_from_cart import RemoveItemResource
+from resources.update_quantity import UpdateQuantityResource
 
 # ✅ Create app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # ✅ Load config
 app.config.from_object(Config)
@@ -34,6 +38,11 @@ api.add_resource(ProductResource, "/products")
 api.add_resource(SubscriptionResource, "/subscriptions")  # ✅ NEW
 api.add_resource(CurrentUser, "/me")
 api.add_resource(DiscountByUser, "/discount-by-user")
+api.add_resource(AddToCartResource, "/cart/add")
+api.add_resource(GetCartResource, "/cart/<string:user_id>")
+api.add_resource(RemoveItemResource, "/cart/remove/<string:user_id>/<string:product_id>")
+api.add_resource(UpdateQuantityResource, "/cart/update/"
+"<string:user_id>/<string:product_id>")
 
 # ✅ Debug routes
 print(app.url_map)

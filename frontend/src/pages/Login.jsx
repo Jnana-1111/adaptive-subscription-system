@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-// ❌ You can remove this if not needed
-// import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -23,9 +21,22 @@ const Login = () => {
       const token = res.data.access_token;
       const user = res.data.user;
 
+      // ✅ Save token
       localStorage.setItem("token", token);
-      localStorage.setItem("username", user.username);
+
+      // ✅ FIX: use email (or name)
+      const username = user?.email;   // 🔥 IMPORTANT FIX
+
+      if (!username) {
+        throw new Error("Username missing from response");
+      }
+
+      localStorage.setItem("username", username);
+
+      // ✅ Save usertype (already correct)
       localStorage.setItem("usertype", user.user_type);
+
+      console.log("✅ Stored username:", username);
 
       alert("Login successful!");
       navigate("/products");
