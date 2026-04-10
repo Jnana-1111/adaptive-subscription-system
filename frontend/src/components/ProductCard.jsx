@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
   const [frequency, setFrequency] = useState("monthly");
+  const [loading, setLoading] = useState(false);
+
   const { addToCart, wishlist, addToWishlist, removeFromWishlist } = useCart();
 
   const productId = product.id || product._id;
@@ -13,10 +17,50 @@ const ProductCard = ({ product }) => {
     await addToCart(product);
   };
 
-  const handleSubscribe = () => {
-    console.log("Subscribe clicked for:", product.name, "Frequency:", frequency);
-    // TODO: Call your subscription API here
-    // Example: subscribeProduct(productId, frequency)
+  // ✅ FIXED: snake_case + Authorization Header
+  const handleSubscribe = async () => {
+    try {
+      const username = localStorage.getItem("username");
+      const token = localStorage.getItem("token");
+
+      if (!username || !token) {
+        toast.error("Please login first");
+        return;
+      }
+
+      setLoading(true);
+
+      const res = await axios.post(
+        "http://localhost:5000/subscriptions",
+        {
+          user_id: username,        // ✅ FIXED
+          product_id: productId,    // ✅ FIXED
+          name: product.name,
+          price: product.price,
+          frequency: frequency,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Subscription:", res.data);
+
+      toast.success(`Subscribed (${frequency}) 🎉`, {
+        id: "subscribe-success",
+      });
+
+    } catch (err) {
+      console.error("❌ Subscription error:", err.response?.data || err);
+
+      toast.error(err.response?.data?.msg || "Subscription failed", {
+        id: "subscribe-error",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleWishlist = () => {
@@ -92,6 +136,7 @@ const ProductCard = ({ product }) => {
 
         <button
           onClick={handleSubscribe}
+          disabled={loading}
           style={{
             width: "100%",
             padding: "8px",
@@ -102,7 +147,7 @@ const ProductCard = ({ product }) => {
             color: "#fff",
           }}
         >
-          Subscribe 🔔
+          {loading ? "Subscribing..." : "Subscribe 🔔"}
         </button>
       </div>
     </div>

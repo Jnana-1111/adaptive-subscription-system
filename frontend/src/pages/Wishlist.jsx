@@ -1,13 +1,28 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
-
+import { toast } from "react-hot-toast";
 
 const Wishlist = () => {
   const { wishlist, addToCart, removeFromWishlist } = useCart();
 
+  // ✅ Move to cart with toast
   const handleMove = async (item) => {
     await addToCart(item);
     removeFromWishlist(item.productId);
+
+    toast.success("Moved to Cart 🛒", {
+      id: "move-cart", // prevents duplicate toast
+    });
+  };
+
+  // ✅ Remove from wishlist with toast
+  const handleRemove = (productId) => {
+    removeFromWishlist(productId);
+
+    toast("Removed from Wishlist ❌", {
+      id: "remove-wishlist",
+      icon: "💔",
+    });
   };
 
   return (
@@ -24,7 +39,7 @@ const Wishlist = () => {
               Move to Cart 🛒
             </button>
 
-            <button onClick={() => removeFromWishlist(item.productId)}>
+            <button onClick={() => handleRemove(item.productId)}>
               Remove ❌
             </button>
           </div>
