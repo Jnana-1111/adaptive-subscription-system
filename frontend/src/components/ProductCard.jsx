@@ -17,7 +17,6 @@ const ProductCard = ({ product }) => {
     await addToCart(product);
   };
 
-  // ✅ FIXED: snake_case + Authorization Header
   const handleSubscribe = async () => {
     try {
       const username = localStorage.getItem("username");
@@ -33,8 +32,8 @@ const ProductCard = ({ product }) => {
       const res = await axios.post(
         "http://localhost:5000/subscriptions",
         {
-          user_id: username,        // ✅ FIXED
-          product_id: productId,    // ✅ FIXED
+          user_id: username,
+          product_id: productId,
           name: product.name,
           price: product.price,
           frequency: frequency,
@@ -68,6 +67,13 @@ const ProductCard = ({ product }) => {
     else addToWishlist({ productId, name: product.name, price: product.price });
   };
 
+  // ✅ safe fallback
+  const discount = product.flat_discount || 0;
+  const finalPrice =
+    product.final_price !== undefined
+      ? product.final_price
+      : product.price - (product.price * discount) / 100;
+
   return (
     <div
       style={{
@@ -84,21 +90,59 @@ const ProductCard = ({ product }) => {
       {/* Wishlist Icon */}
       <div
         onClick={toggleWishlist}
-        style={{ position: "absolute", top: 10, right: 10, cursor: "pointer", fontSize: "22px" }}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          cursor: "pointer",
+          fontSize: "22px",
+        }}
       >
         {isInWishlist ? <AiFillHeart color="red" /> : <AiOutlineHeart />}
       </div>
+
+      {/* Discount Badge */}
+      {discount > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 10,
+            background: "red",
+            color: "white",
+            padding: "4px 8px",
+            fontSize: "12px",
+            borderRadius: "5px",
+            fontWeight: "bold",
+          }}
+        >
+          {discount}% OFF
+        </div>
+      )}
 
       {/* Product Image */}
       <img
         src={product.image || "https://via.placeholder.com/150"}
         alt={product.name}
-        style={{ width: "100%", height: "150px", objectFit: "cover", borderRadius: "8px" }}
+        style={{
+          width: "100%",
+          height: "150px",
+          objectFit: "cover",
+          borderRadius: "8px",
+        }}
       />
 
       {/* Product Info */}
       <h3 style={{ marginTop: "10px" }}>{product.name}</h3>
-      <p style={{ fontWeight: "bold" }}>₹{product.price}</p>
+
+      {/* Price Section */}
+      <p style={{ textDecoration: "line-through", color: "gray", margin: 0 }}>
+        ₹{product.price}
+      </p>
+
+      <p style={{ fontWeight: "bold", fontSize: "18px", margin: "5px 0" }}>
+        ₹{finalPrice}
+      </p>
 
       {/* Add to Cart Button */}
       <button

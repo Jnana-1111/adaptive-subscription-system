@@ -1,12 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { AiOutlineShoppingCart, AiOutlineHeart } from "react-icons/ai";
-import { useCart } from "../context/CartContext"; // ✅ USE CONTEXT
+import { useCart } from "../context/CartContext";
 
 function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // ✅ REAL DATA FROM CONTEXT
   const { cart, wishlist } = useCart();
 
   const handleLogout = () => {
@@ -52,6 +51,16 @@ function Navbar() {
           )}
         </Link>
 
+        {/* 📦 Subscriptions (NEW) */}
+        {token && (
+          <button
+            onClick={() => navigate("/subscriptions")}
+            style={styles.subBtn}
+          >
+            Subscriptions 📦
+          </button>
+        )}
+
         {!token ? (
           <>
             <Link to="/login">Login</Link>
@@ -96,6 +105,17 @@ const styles = {
     borderRadius: "50%",
     padding: "2px 6px",
     fontSize: "12px",
+  },
+
+  // ✅ NEW STYLE
+  subBtn: {
+    background: "#f08804",
+    color: "black",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
   },
 };
 

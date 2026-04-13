@@ -4,24 +4,26 @@ import ProductCard from "../components/ProductCard";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
   const [username, setUsername] = useState("");
   const [usertype, setUsertype] = useState("");
-  const [discount, setDiscount] = useState(null); // ✅ NEW
+  const [discount, setDiscount] = useState(null);
+
+  // 🔥 NEW STATES
+  const [priceFilter, setPriceFilter] = useState("all");
+  const [sortOption, setSortOption] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     console.log("✅ Products component mounted");
 
-    // ✅ FETCH USER (DYNAMIC - FROM BACKEND)
+    // ✅ FETCH USER
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
 
-        console.log("🔥 TOKEN:", token);
-
-        if (!token) {
-          console.error("❌ No token found. Please login again.");
-          return;
-        }
+        if (!token) return;
 
         const res = await axios.get("http://localhost:5000/me", {
           headers: {
@@ -29,13 +31,10 @@ const Products = () => {
           },
         });
 
-        console.log("🔥 USER API RESPONSE:", res.data);
-
-        // ✅ SET USER DATA
         setUsername(res.data.username);
         setUsertype(res.data.user_type);
 
-        // ✅ FETCH DISCOUNT AFTER USER
+        // ✅ FETCH DISCOUNT
         const discountRes = await axios.get(
           `http://localhost:5000/discount-by-user?usertype=${res.data.user_type}`,
           {
@@ -44,8 +43,6 @@ const Products = () => {
             },
           }
         );
-
-        console.log("🔥 DISCOUNT RESPONSE:", discountRes.data);
 
         setDiscount(discountRes.data.discount_percent);
 
@@ -65,48 +62,79 @@ const Products = () => {
           },
         });
 
-        console.log("📦 PRODUCTS API RESPONSE:", res.data);
+        let data = [];
 
-        // ✅ HANDLE MULTIPLE RESPONSE FORMATS
         if (Array.isArray(res.data)) {
-          setProducts(res.data);
+          data = res.data;
         } else if (res.data && res.data.data) {
-          setProducts(res.data.data);
-        } else {
-          setProducts([]);
+          data = res.data.data;
         }
+
+        setProducts(data);
+        setFilteredProducts(data);
 
       } catch (err) {
         console.error("❌ Product fetch error:", err);
         setProducts([]);
+        setFilteredProducts([]);
       }
     };
 
-    // 🔥 CALL BOTH
     fetchUser();
     fetchProducts();
-
   }, []);
+
+  // 🔥 SEARCH + FILTER + SORT
+  useEffect(() => {
+    let updated = [...products];
+
+    // 🔍 SEARCH
+    if (searchTerm.trim() !== "") {
+      updated = updated.filter((p) =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // 🔍 FILTER
+    if (priceFilter === "low") {
+      updated = updated.filter((p) => p.price < 500);
+    } else if (priceFilter === "medium") {
+      updated = updated.filter((p) => p.price >= 500 && p.price <= 1000);
+    } else if (priceFilter === "high") {
+      updated = updated.filter((p) => p.price > 1000);
+    }
+
+    // 🔽 SORT
+    if (sortOption === "low-high") {
+      updated.sort((a, b) => a.price - b.price);
+    } else if (sortOption === "high-low") {
+      updated.sort((a, b) => b.price - a.price);
+    } else if (sortOption === "name") {
+      updated.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    setFilteredProducts(updated);
+  }, [searchTerm, priceFilter, sortOption, products]);
 
   return (
     <div>
-      {/* 🔹 Top Right User Info */}
+
+      {/* 🔹 USER INFO */}
       <div
         style={{
           display: "flex",
-          flexDirection: "column", // ✅ UPDATED
-          alignItems: "flex-end",  // ✅ UPDATED
+          flexDirection: "column",
+          alignItems: "flex-end",
           padding: "10px",
           backgroundColor: "#f5f5f5",
         }}
       >
-       {username && (
-         <strong>
-           {username} ({usertype})
-         </strong>
-)}
+        {username && (
+          <strong>
+            {username} ({usertype})
+          </strong>
+        )}
 
-        {/* ✅ NEW: DISCOUNT DISPLAY */}
         {discount !== null && (
           <span style={{ color: "green", fontSize: "14px" }}>
             🎉 {usertype} users get {discount}% discount
@@ -114,25 +142,84 @@ const Products = () => {
         )}
       </div>
 
-      {/* 🔹 Products Section */}
+      {/* 🔥 CENTERED SEARCH + FILTER + SORT */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "15px",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+
+        {/* SEARCH BAR CENTER */}
+        <input
+          type="text"
+          placeholder="🔍 Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: "50%",
+            maxWidth: "500px",
+            padding: "10px",
+            borderRadius: "25px",
+            border: "1px solid #ccc",
+            outline: "none",
+            textAlign: "center",
+            fontSize: "16px",
+          }}
+        />
+
+        {/* FILTER + SORT */}
+        <div
+          style={{
+            display: "flex",
+            gap: "15px",
+            marginTop: "12px",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+
+          {/* FILTER */}
+          <select onChange={(e) => setPriceFilter(e.target.value)}>
+            <option value="all">All Prices</option>
+            <option value="low">Below ₹500</option>
+            <option value="medium">₹500 - ₹1000</option>
+            <option value="high">Above ₹1000</option>
+          </select>
+
+          {/* SORT */}
+          <select onChange={(e) => setSortOption(e.target.value)}>
+            <option value="">Sort By</option>
+            <option value="low-high">Price: Low → High</option>
+            <option value="high-low">Price: High → Low</option>
+            <option value="name">Name A → Z</option>
+          </select>
+
+        </div>
+      </div>
+
+      {/* 🔹 PRODUCTS GRID */}
       <div
         style={{
           padding: "20px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "20px"
+          gap: "20px",
         }}
->
-        {Array.isArray(products) && products.length > 0 ? (
-          products.map((p) => (
+      >
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((p) => (
             <ProductCard
               key={p.id}
               product={p}
-              setUsertype={setUsertype} // (kept as it is)
+              setUsertype={setUsertype}
             />
           ))
         ) : (
-          <p>Loading products...</p>
+          <p>No products found</p>
         )}
       </div>
     </div>

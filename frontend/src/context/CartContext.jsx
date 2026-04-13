@@ -8,6 +8,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [username, setUsername] = useState(null);
+  const [cartId, setCartId] = useState(null); // ✅ NEW
 
   // Coupon
   const [discount, setDiscount] = useState(0);
@@ -29,12 +30,16 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // Fetch cart
+  // ✅ Fetch cart (UPDATED)
   const fetchCart = async (user) => {
     if (!user) return;
     try {
       const res = await axios.get(`http://localhost:5000/cart/${user}`);
+
       setCart(res.data.items || []);
+      setCartId(res.data.cart_id); // ✅ IMPORTANT
+
+      console.log("Cart ID:", res.data.cart_id);
     } catch (err) {
       console.error("❌ Fetch cart error:", err);
       setCart([]);
@@ -93,10 +98,10 @@ export const CartProvider = ({ children }) => {
     setWishlist((prev) => prev.filter((i) => i.productId !== productId));
   };
 
-  // Update Quantity
+  // Update Quantity (still using username API)
   const updateQuantity = async (productId, type) => {
     try {
-      const item = cart.find((i) => i.productId === productId);
+      const item = cart.find((i) => i.product_id === productId);
       if (!item) return;
 
       const newQty = type === "inc" ? item.quantity + 1 : item.quantity - 1;
@@ -116,7 +121,7 @@ export const CartProvider = ({ children }) => {
   // ❌ Move to wishlist (soft remove)
   const removeFromCart = async (productId) => {
     try {
-      const itemToRemove = cart.find((i) => i.productId === productId);
+      const itemToRemove = cart.find((i) => i.product_id === productId);
       if (!itemToRemove) return;
 
       await axios.delete(
@@ -131,11 +136,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // 🗑️ PERMANENT DELETE (NEW FIXED API)
+  // 🗑️ PERMANENT DELETE (FIXED)
   const deleteFromCart = async (productId) => {
     try {
+      if (!cartId) {
+        console.error("❌ cartId is null");
+        toast.error("Cart not loaded yet");
+        return;
+      }
+
       await axios.delete(
-        `http://localhost:5000/cart/${username}/${productId}`
+        `http://localhost:5000/cart/${cartId}/${productId}` // ✅ FIXED
       );
 
       fetchCart(username);
@@ -180,7 +191,7 @@ export const CartProvider = ({ children }) => {
         removeFromWishlist,
         updateQuantity,
         removeFromCart,
-        deleteFromCart, // ✅ IMPORTANT
+        deleteFromCart, // ✅ FIXED
         subtotal,
         total,
         discount,

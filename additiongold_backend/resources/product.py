@@ -12,10 +12,10 @@ class ProductResource(Resource):
                 "id": p.id,
                 "name": p.name,
                 "price": p.price,
-                "image_url": p.image_url  
+                "flat_discount": p.flat_discount,
+                "image_url": p.image_url
             }
             for p in products
         ]
 
-        return api_response(True, 200, "Products fetched", result)
-
+        return api_response(True, 200, "Products fetched successfully", result)

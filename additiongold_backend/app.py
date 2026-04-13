@@ -16,6 +16,9 @@ from resources.get_cart import GetCartResource
 from resources.remove_item_from_cart import RemoveItemResource
 from resources.update_quantity import UpdateQuantityResource
 from resources.delete_cart_item import CartItemDelete 
+from resources.get_subscriptions import GetSubscriptionsResource
+from resources.create_order import CreateOrder
+from resources.verify_payment import VerifyPayment
 
 # ✅ Create app
 app = Flask(__name__)
@@ -33,6 +36,7 @@ jwt.init_app(app)
 
 # ✅ Create API
 api = Api(app)
+CORS(app)
 
 # ✅ Register APIs
 api.add_resource(RegisterUser, "/register")
@@ -48,8 +52,12 @@ api.add_resource(UpdateQuantityResource, "/cart/update/"
 "<string:user_id>/<string:product_id>")
 api.add_resource(
     CartItemDelete,
-    "/cart/<string:user_id>/<int:product_id>"
+    "/cart/<int:cart_id>/<string:product_id>"
 )
+api.add_resource(GetSubscriptionsResource, "/subscriptions")
+api.add_resource(CreateOrder, "/create-order")
+api.add_resource(VerifyPayment, "/verify-payment")
+
 
 
 # ✅ Debug routes

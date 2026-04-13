@@ -13,7 +13,6 @@ class SubscriptionResource(Resource):
         try:
             data = request.get_json()
 
-            # ✅ Validate request body
             if not data:
                 return {"msg": "No input data provided"}, 400
 
@@ -33,23 +32,27 @@ class SubscriptionResource(Resource):
 
             # ✅ Normalize frequency
             frequency = frequency.strip().lower()
-            if frequency not in ["monthly", "yearly"]:
-                return {"msg": "Invalid frequency"}, 422
 
-            # ✅ Get user from JWT
+            # ✅ UPDATED: yearly removed
+            valid_frequencies = ["daily", "weekly", "monthly"]
+
+            if frequency not in valid_frequencies:
+                return {
+                    "msg": f"Invalid frequency. Allowed: {valid_frequencies}"
+                }, 422
+
+            # ✅ Get user
             user_id = int(get_jwt_identity())
 
-            # ✅ Validate user
             user = User.query.get(user_id)
             if not user:
                 return {"msg": "User not found"}, 404
 
-            # ✅ Validate product
             product = Product.query.get(product_id)
             if not product:
                 return {"msg": "Product not found"}, 404
 
-            # ✅ Prevent duplicate subscription
+            # ✅ Prevent duplicate
             existing = Subscription.query.filter_by(
                 user_id=user_id,
                 product_id=product_id
@@ -58,15 +61,18 @@ class SubscriptionResource(Resource):
             if existing:
                 return {"msg": "Already subscribed"}, 409
 
-            # ✅ Price handling (fix NOT NULL error)
             original_price = product.price
-            discounted_price = product.price  # modify if discount logic added
+            discounted_price = product.price
 
-            # ✅ Billing date calculation
-            if frequency == "monthly":
-                next_billing_date = datetime.utcnow() + timedelta(days=30)
-            else:
-                next_billing_date = datetime.utcnow() + timedelta(days=365)
+            now = datetime.utcnow()
+
+            # ✅ UPDATED BILLING LOGIC (no yearly)
+            if frequency == "daily":
+                next_billing_date = now + timedelta(days=1)
+            elif frequency == "weekly":
+                next_billing_date = now + timedelta(days=7)
+            elif frequency == "monthly":
+                next_billing_date = now + timedelta(days=30)
 
             # ✅ Create subscription
             subscription = Subscription(
@@ -79,9 +85,9 @@ class SubscriptionResource(Resource):
             )
 
             db.session.add(subscription)
-            db.session.flush()  # ✅ ensures new subscription is counted
+            db.session.flush()
 
-            # ✅ Dynamic user_type update
+            # ✅ User type update
             subscription_count = Subscription.query.filter_by(user_id=user_id).count()
 
             if subscription_count >= 5:
@@ -91,9 +97,6 @@ class SubscriptionResource(Resource):
             else:
                 user.user_type = "normal"
 
-            print("Updated user type:", user.user_type)
-
-            # ✅ Commit all changes
             db.session.commit()
 
             return {

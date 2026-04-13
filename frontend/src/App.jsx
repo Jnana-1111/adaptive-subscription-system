@@ -9,6 +9,7 @@ import Checkout from "./pages/Checkout";
 import AdBanner from "./components/AdBanner";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import Subscriptions from "./pages/Subscriptions";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
         </Routes>
       </div>
 

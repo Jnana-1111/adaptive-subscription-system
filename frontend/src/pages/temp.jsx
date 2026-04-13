@@ -8,7 +8,7 @@ const Cart = () => {
     cart,
     updateQuantity,
     removeFromCart,
-    deleteFromCart, // ✅ ADDED
+    deleteFromCart,
     subtotal,
     total,
     couponCode,
@@ -19,31 +19,30 @@ const Cart = () => {
 
   const navigate = useNavigate();
 
-  // selected items state
   const [selectedItems, setSelectedItems] = useState({});
 
   const itemCount = cart.length;
 
-  // auto-check all items
+  // ✅ FIXED
   useEffect(() => {
     const initial = {};
     cart.forEach((item) => {
-      initial[item.productId] = true;
+      initial[item.product_id] = true;
     });
     setSelectedItems(initial);
   }, [cart]);
 
-  // toggle checkbox
-  const toggleSelect = (productId) => {
+  // ✅ FIXED
+  const toggleSelect = (product_id) => {
     setSelectedItems((prev) => ({
       ...prev,
-      [productId]: !prev[productId],
+      [product_id]: !prev[product_id],
     }));
   };
 
-  // selected items
+  // ✅ FIXED
   const selectedCart = cart.filter(
-    (item) => selectedItems[item.productId]
+    (item) => selectedItems[item.product_id]
   );
 
   const selectedSubtotal = selectedCart.reduce(
@@ -54,8 +53,8 @@ const Cart = () => {
   const selectedTotal =
     selectedSubtotal - (selectedSubtotal * discount) / 100;
 
-  const handleRemoveFromCart = async (productId) => {
-    await removeFromCart(productId);
+  const handleRemoveFromCart = async (product_id) => {
+    await removeFromCart(product_id);
 
     toast("Moved to Wishlist ❤️", {
       id: "move-wishlist",
@@ -66,7 +65,6 @@ const Cart = () => {
     <div style={{ padding: "20px" }}>
       <h2>🛒 Your Cart</h2>
 
-      {/* N × N display */}
       <div style={{ textAlign: "left", marginBottom: "10px" }}>
         <strong>
           {itemCount} × {itemCount} in your cart
@@ -79,7 +77,7 @@ const Cart = () => {
         <>
           {cart.map((item) => (
             <div
-              key={item.productId}
+              key={item.product_id}   // ✅ FIXED
               style={{
                 border: "1px solid #ccc",
                 padding: "10px",
@@ -93,31 +91,30 @@ const Cart = () => {
               {/* CHECKBOX */}
               <input
                 type="checkbox"
-                checked={!!selectedItems[item.productId]}
-                onChange={() => toggleSelect(item.productId)}
+                checked={!!selectedItems[item.product_id]}  // ✅
+                onChange={() => toggleSelect(item.product_id)} // ✅
               />
 
               <div style={{ flex: 1 }}>
                 <h3>{item.name}</h3>
                 <p>Price: ₹{item.price}</p>
 
-                {/* Quantity Controls */}
+                {/* Quantity */}
                 <div style={{ display: "flex", gap: "10px" }}>
-                  <button onClick={() => updateQuantity(item.productId, "dec")}>
+                  <button onClick={() => updateQuantity(item.product_id, "dec")}>
                     ➖
                   </button>
                   <span>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.productId, "inc")}>
+                  <button onClick={() => updateQuantity(item.product_id, "inc")}>
                     ➕
                   </button>
                 </div>
 
-                {/* ACTION BUTTONS */}
+                {/* ACTIONS */}
                 <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
 
-                  {/* Remove → wishlist */}
                   <button
-                    onClick={() => handleRemoveFromCart(item.productId)}
+                    onClick={() => handleRemoveFromCart(item.product_id)} // ✅
                     style={{
                       background: "red",
                       color: "white",
@@ -129,9 +126,8 @@ const Cart = () => {
                     Remove ❌
                   </button>
 
-                  {/* Delete → permanent */}
                   <button
-                    onClick={() => deleteFromCart(item.productId)}
+                    onClick={() => deleteFromCart(item.product_id)} // ✅🔥
                     style={{
                       background: "black",
                       color: "white",
@@ -159,7 +155,7 @@ const Cart = () => {
             <button onClick={applyCoupon}>Apply</button>
           </div>
 
-          {/* BILL SUMMARY */}
+          {/* BILL */}
           <div style={{ marginTop: "20px" }}>
             <h3>Subtotal (Selected): ₹{selectedSubtotal.toFixed(2)}</h3>
             <h3>Discount: {discount}%</h3>
