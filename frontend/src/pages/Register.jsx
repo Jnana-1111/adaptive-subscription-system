@@ -1,23 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./register.css"; // 👈 add this
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      name: name,
-      email: email,
-      password: password,
-    };
-
-    console.log("Sending register data:", payload);
+    const payload = { name, email, password };
 
     try {
       const res = await fetch("http://localhost:5000/register", {
@@ -29,9 +24,6 @@ const Register = () => {
       });
 
       const data = await res.json();
-      console.log("Register response:", data);
-
-     
 
       if (res.ok) {
         alert("Registration successful");
@@ -46,55 +38,62 @@ const Register = () => {
   };
 
   return (
-    <div className="center-container">
-      <div className="form-box">
-        <h2 style={{ textAlign: "center" }}>Register</h2>
+    <div className="page">
+      <h1 className="logo">Smartkart</h1>
+
+      <div className="card">
+        <h2>Create account</h2>
 
         <form onSubmit={handleRegister}>
+          
+          {/* Name */}
+          <div className="input-group">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <label>Your name</label>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Enter name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
-          />
+          {/* Email */}
+          <div className="input-group">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <label>Email</label>
+          </div>
 
-          <input
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
-          />
+          {/* Password */}
+          <div className="input-group">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <label>Password</label>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: "10px", marginBottom: "15px" }}
-          />
-
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              cursor: "pointer",
-            }}
-          >
-            Register
+          <button type="submit" className="btn">
+            Create your account
           </button>
-
         </form>
+
+        <p className="terms">
+          By creating an account, you agree to Conditions of Use.
+        </p>
+
+        <hr />
+
+        <p className="signin">
+          Already have an account?{" "}
+          <span onClick={() => navigate("/login")}>Sign in</span>
+        </p>
       </div>
     </div>
   );

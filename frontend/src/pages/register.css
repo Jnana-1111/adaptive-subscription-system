@@ -1,0 +1,83 @@
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f3f3;
+}
+
+.logo {
+  margin-bottom: 20px;
+}
+
+.card {
+  width: 320px;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Input */
+.input-group input {
+  width: 100%;
+  padding: 12px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  font-size: 14px;
+}
+
+/* Label */
+.input-group label {
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  color: #777;
+  font-size: 14px;
+  background: white;
+  padding: 0 5px;
+  transition: 0.3s ease;
+  pointer-events: none;
+}
+
+/* FLOAT EFFECT */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  top: -8px;
+  font-size: 12px;
+  color: #007185;
+}
+
+/* Button */
+.btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffd814;
+  border: 1px solid #fcd200;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.terms {
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+.signin {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.signin span {
+  color: #007185;
+  cursor: pointer;
+}

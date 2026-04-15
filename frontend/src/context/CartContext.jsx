@@ -8,19 +8,18 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [username, setUsername] = useState(null);
-  const [cartId, setCartId] = useState(null); // ✅ NEW
+  const [cartId, setCartId] = useState(null);
 
-  // Coupon
   const [discount, setDiscount] = useState(0);
   const [couponCode, setCouponCode] = useState("");
 
-  // Get username from localStorage
+  // ✅ Get username
   useEffect(() => {
     const user = localStorage.getItem("username");
     if (user && user !== "undefined") setUsername(user);
   }, []);
 
-  // Load wishlist from localStorage
+  // ✅ Wishlist load/save
   useEffect(() => {
     const savedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     setWishlist(savedWishlist);
@@ -30,16 +29,13 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("wishlist", JSON.stringify(wishlist));
   }, [wishlist]);
 
-  // ✅ Fetch cart (UPDATED)
+  // ✅ Fetch cart
   const fetchCart = async (user) => {
     if (!user) return;
     try {
       const res = await axios.get(`http://localhost:5000/cart/${user}`);
-
       setCart(res.data.items || []);
-      setCartId(res.data.cart_id); // ✅ IMPORTANT
-
-      console.log("Cart ID:", res.data.cart_id);
+      setCartId(res.data.cart_id);
     } catch (err) {
       console.error("❌ Fetch cart error:", err);
       setCart([]);
@@ -50,61 +46,82 @@ export const CartProvider = ({ children }) => {
     if (username) fetchCart(username);
   }, [username]);
 
-  // ✅ Add to Cart
-  const addToCart = async (product) => {
+  // ✅ UPDATED addToCart (SMART TOAST CONTROL)
+  const addToCart = async (product, showToast = true) => {
     if (!username) {
-      toast.error("Please login first", {
-        style: { background: "#232f3e", color: "#fff" },
-        id: "login-error",
-      });
+      toast.error("Please login first");
+      return;
+    }
+
+    const productId =
+      product.productId || product.id || product._id;
+
+    console.log("🛒 FINAL PAYLOAD:", {
+      userId: username,
+      productId,
+      name: product.name,
+      price: product.price,
+    });
+
+    if (!productId) {
+      toast.error("Product ID missing ❌");
       return;
     }
 
     try {
-      await axios.post(
-        "http://localhost:5000/cart/add",
-        {
-          userId: username,
-          productId: product._id || product.id,
-          name: product.name,
-          price: product.price,
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      await axios.post("http://localhost:5000/cart/add", {
+        userId: username,
+        productId: productId,
+        name: product.name,
+        price: product.price,
+      });
 
       fetchCart(username);
 
-      toast.success("Added to Cart 🛒", {
-        id: "add-cart",
-      });
+      // ✅ Only show toast when allowed
+      if (showToast) {
+        toast.success("Added to Cart 🛒");
+      }
+
     } catch (err) {
       console.error("❌ addToCart error:", err.response?.data || err);
-
-      toast.error("Failed to add item", {
-        id: "add-error",
-      });
+      toast.error(err.response?.data?.error || "Add failed");
     }
   };
 
-  // Wishlist
+  // ✅ Wishlist
   const addToWishlist = (item) => {
     setWishlist((prev) => {
-      if (prev.find((p) => p.productId === item.productId)) return prev;
-      return [...prev, item];
+      const id = item.id || item.productId;
+
+      if (prev.find((p) => p.productId === id)) return prev;
+
+      return [
+        ...prev,
+        {
+          productId: id,
+          name: item.name,
+          price: item.price,
+        },
+      ];
     });
   };
 
   const removeFromWishlist = (productId) => {
-    setWishlist((prev) => prev.filter((i) => i.productId !== productId));
+    setWishlist((prev) =>
+      prev.filter((i) => i.productId !== productId)
+    );
   };
 
-  // Update Quantity (still using username API)
+  // Quantity
   const updateQuantity = async (productId, type) => {
     try {
       const item = cart.find((i) => i.product_id === productId);
       if (!item) return;
 
-      const newQty = type === "inc" ? item.quantity + 1 : item.quantity - 1;
+      const newQty =
+        type === "inc" ? item.quantity + 1 : item.quantity - 1;
+
       if (newQty < 1) return;
 
       await axios.put(
@@ -114,52 +131,40 @@ export const CartProvider = ({ children }) => {
 
       fetchCart(username);
     } catch (err) {
-      console.error("❌ Quantity update error:", err);
+      console.error(err);
     }
   };
 
-  // ❌ Move to wishlist (soft remove)
+  // Move/remove
   const removeFromCart = async (productId) => {
     try {
-      const itemToRemove = cart.find((i) => i.product_id === productId);
-      if (!itemToRemove) return;
+      const item = cart.find((i) => i.product_id === productId);
+      if (!item) return;
 
       await axios.delete(
         `http://localhost:5000/cart/remove/${username}/${productId}`
       );
 
       fetchCart(username);
-
-      setWishlist((prev) => [...prev, itemToRemove]);
+      setWishlist((prev) => [...prev, item]);
     } catch (err) {
-      console.error("❌ Remove error:", err);
+      console.error(err);
     }
   };
 
-  // 🗑️ PERMANENT DELETE (FIXED)
+  // Delete
   const deleteFromCart = async (productId) => {
     try {
-      if (!cartId) {
-        console.error("❌ cartId is null");
-        toast.error("Cart not loaded yet");
-        return;
-      }
+      if (!cartId) return;
 
       await axios.delete(
-        `http://localhost:5000/cart/${cartId}/${productId}` // ✅ FIXED
+        `http://localhost:5000/cart/${cartId}/${productId}`
       );
 
       fetchCart(username);
-
-      toast.success("Item deleted 🗑️", {
-        id: "delete-item",
-      });
+      toast.success("Item deleted 🗑️");
     } catch (err) {
-      console.error("❌ Delete error:", err);
-
-      toast.error("Failed to delete item", {
-        id: "delete-error",
-      });
+      console.error(err);
     }
   };
 
@@ -169,11 +174,10 @@ export const CartProvider = ({ children }) => {
     else if (couponCode === "SAVE20") setDiscount(20);
     else {
       setDiscount(0);
-      toast.error("Invalid coupon", { id: "coupon-error" });
+      toast.error("Invalid coupon");
     }
   };
 
-  // Calculations
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -191,7 +195,7 @@ export const CartProvider = ({ children }) => {
         removeFromWishlist,
         updateQuantity,
         removeFromCart,
-        deleteFromCart, // ✅ FIXED
+        deleteFromCart,
         subtotal,
         total,
         discount,
